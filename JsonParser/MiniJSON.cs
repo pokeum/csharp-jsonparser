@@ -26,7 +26,6 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -283,11 +282,15 @@ namespace JsonParser
                 return s.ToString();
             }
 
+            /// <summary>
+            /// Parses a string representation of a number and returns it as either a long (Int64) or double.
+            /// </summary>
             object ParseNumber()
             {
                 string number = NextWord;
 
-                if (Int64.TryParse(number, System.Globalization.NumberStyles.Any,
+                if (!number.Contains('.') &&
+                    Int64.TryParse(number, System.Globalization.NumberStyles.Any,
                         System.Globalization.CultureInfo.InvariantCulture, out var parsedInt))
                 {
                     return parsedInt;
@@ -624,17 +627,35 @@ namespace JsonParser
                 // Previously floats and doubles lost precision too.
                 if (value is float)
                 {
-                    builder.Append(((float)value).ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+                    var modifiedValue = ((float)value).ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                    if (!modifiedValue.Contains('.'))
+                    {
+                        modifiedValue += ".0";
+                    }
+
+                    builder.Append(modifiedValue);
                 }
-                else if (value is int || value is uint || value is long || value is sbyte || value is byte ||
-                         value is short || value is ushort || value is ulong)
+                else if (value is int
+                         || value is uint
+                         || value is long
+                         || value is sbyte
+                         || value is byte
+                         || value is short
+                         || value is ushort
+                         || value is ulong)
                 {
                     builder.Append(value);
                 }
                 else if (value is double || value is decimal)
                 {
-                    builder.Append(Convert.ToDouble(value)
-                        .ToString("R", System.Globalization.CultureInfo.InvariantCulture));
+                    var modifiedValue = Convert.ToDouble(value)
+                        .ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+                    if (!modifiedValue.Contains('.'))
+                    {
+                        modifiedValue += ".0";
+                    }
+
+                    builder.Append(modifiedValue);
                 }
                 else
                 {
@@ -656,7 +677,7 @@ namespace JsonParser
                     SerializeObject(map, indent);
                 }
             }
-            
+
             /// <summary>
             /// Attempts to determine if the provided object is an enumerable collection
             /// with a single generic type argument and converts it to a List&lt;object&gt;.
