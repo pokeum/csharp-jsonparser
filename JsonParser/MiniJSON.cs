@@ -436,7 +436,6 @@ namespace JsonParser
 
             void SerializeValue(object value, int indent)
             {
-                IList asList;
                 IDictionary asDict;
                 string asStr;
 
@@ -452,7 +451,7 @@ namespace JsonParser
                 {
                     builder.Append((bool)value ? "true" : "false");
                 }
-                else if ((asList = value as IList) != null)
+                else if (IsList(value, out var asList))
                 {
                     SerializeArray(asList, indent);
                 }
@@ -656,6 +655,50 @@ namespace JsonParser
 
                     SerializeObject(map, indent);
                 }
+            }
+            
+            /// <summary>
+            /// Attempts to determine if the provided object is an enumerable collection
+            /// with a single generic type argument and converts it to a List&lt;object&gt;.
+            /// </summary>
+            /// <param name="value"> The object to be checked and converted.</param>
+            /// <param name="result"> An output parameter that will contain the List&lt;object&gt; if the conversion is successful, otherwise it will be null.</param>
+            /// <returns> Returns true if the object is a valid enumerable with a single generic type argument and is successfully converted to a List&lt;object&gt;,
+            /// otherwise returns false.</returns>
+            private bool IsList(object value, out List<object> result)
+            {
+                IEnumerable asEnumerable;
+
+                if ((asEnumerable = value as IEnumerable) != null)
+                {
+                    Type type = asEnumerable.GetType();
+                    if (!type.IsGenericType ||
+                        (type.IsGenericType && type.GetGenericArguments().Length == 1))
+                    {
+                        var list = new List<object>();
+                        IEnumerator enumerator = asEnumerable.GetEnumerator();
+                        try
+                        {
+                            while (enumerator.MoveNext())
+                            {
+                                list.Add(enumerator.Current);
+                            }
+                        }
+                        finally
+                        {
+                            if (enumerator is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
+                        }
+
+                        result = list;
+                        return true;
+                    }
+                }
+
+                result = null;
+                return false;
             }
         }
     }
