@@ -10,10 +10,29 @@ public class TypeInference
 {
     public static void Demo()
     {
-        ListDemo();
+        ArraysDemo();
+        IndexableCollectionsDemo();
     }
 
-    private static void ListDemo()
+    // https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/arrays
+    private static void ArraysDemo()
+    {
+        // Declare and set single-dimensional array
+        int[] array = new int[] { 1, 2, 3, 4, 5, 6 };
+        SerializeValue(array);
+
+        // Declare and set two-dimensional array
+        int[,] multiDimensionalArray = { { 1, 2, 3 }, { 4, 5, 6 } };
+        SerializeValue(multiDimensionalArray);
+
+        // Declare a jagged array.
+        int[][] jaggedArray = new int[6][];
+        // Set the values of the first array in the jagged array structure.
+        jaggedArray[0] = new int[] { 1, 2, 3, 4 };
+        SerializeValue(jaggedArray);
+    }
+
+    private static void IndexableCollectionsDemo()
     {
         // Array
         int[] numbers = { 1, 1, 2, 3, 5, 8, 13 };
@@ -24,7 +43,7 @@ public class TypeInference
         // List
         var words = new List<string> { "one", "two" };
         SerializeValue(words);
-        
+
         // Stack: Last in, First Out (LIFO)
         var names = new string[] { "Ankit", "Marius", "Raffaele" };
         Stack<string> nameStack = new Stack<string>(names); // "Raffaele", "Marius", "Ankit"
