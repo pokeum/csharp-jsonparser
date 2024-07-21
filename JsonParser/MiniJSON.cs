@@ -432,7 +432,10 @@ namespace JsonParser
             {
                 var instance = new Serializer(pretty, indentText);
 
-                instance.SerializeValue(obj, 0);
+                if (IsSerializableValue(obj))
+                {
+                    instance.SerializeValue(obj, 0);
+                }
 
                 return instance.builder.ToString();
             }
@@ -492,6 +495,8 @@ namespace JsonParser
 
                 foreach (object e in obj.Keys)
                 {
+                    if (!IsSerializableValue(obj[e])) continue;
+                    
                     if (!first)
                     {
                         builder.Append(',');
@@ -544,6 +549,8 @@ namespace JsonParser
 
                 foreach (object obj in anArray)
                 {
+                    if (!IsSerializableValue(obj)) continue;
+                    
                     if (!first)
                     {
                         builder.Append(',');
@@ -676,6 +683,24 @@ namespace JsonParser
 
                     SerializeObject(map, indent);
                 }
+            }
+            
+            private static bool IsSerializableValue(object value)
+            {
+                if (value is float)
+                {
+                    // Ignores NaN and Infinity values
+                    if (!float.IsFinite((float)value))
+                        return false;
+                }
+                else if (value is double || value is decimal)
+                {
+                    // Ignores NaN and Infinity values
+                    if (!double.IsFinite((double)value))
+                        return false;
+                }
+
+                return true;
             }
 
             /// <summary>
